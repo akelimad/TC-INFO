@@ -122,20 +122,19 @@
 
   /* ---------- ASCII reference table (colors matched to the uploaded image) ---------- */
   .ascii-table-panel { background: #ffffff; }
-  .ascii-table-wrap { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; }
+  .ascii-table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .ascii-table-wrap { display: grid; grid-template-columns: repeat(4, minmax(150px, 1fr)); gap: 0; min-width: 600px; }
   .ascii-col { display: flex; flex-direction: column; font-family: "IBM Plex Mono"; font-size: 11px; min-width: 0; padding-right: 12px; }
   .ascii-col:not(:last-child) { border-right: 1px solid #bbb; margin-right: 12px; }
-  .ascii-head { display: grid; grid-template-columns: 24px 22px 1fr; gap: 5px; padding: 2px 4px 8px; color: #000; font-weight: 700; font-size: 10px; text-transform: uppercase; letter-spacing: 0.02em; border-bottom: 1px solid #999; margin-bottom: 4px; }
-  .ascii-row { display: grid; grid-template-columns: 24px 22px 1fr; gap: 5px; padding: 3px 4px; border-radius: 4px; color: #000; min-height: 30px; align-items: start; }
+  .ascii-head { display: grid; grid-template-columns: 24px 22px 1fr; gap: 5px; padding: 2px 4px 5px; color: #000; font-weight: 700; font-size: 10px; text-transform: uppercase; letter-spacing: 0.02em; border-bottom: 1px solid #999; margin-bottom: 2px; }
+  .ascii-row { display: grid; grid-template-columns: 24px 22px 1fr; gap: 5px; padding: 2px 4px; border-radius: 3px; color: #000; height: 19px; align-items: center; border-bottom: 1px solid #e5e5e5; overflow: hidden; }
+  .ascii-col > .ascii-row:last-child { border-bottom: none; }
   .ascii-row .d { color: #000080; }
-  .ascii-row .c { color: #008080; overflow-wrap: break-word; }
-  .ascii-row.ctrl { font-style: italic; font-size: 9px; line-height: 1.25; }
+  .ascii-row .c { color: #008080; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ascii-row.ctrl { font-style: italic; font-size: 9px; }
   .ascii-row.ctrl .d { color: #aa0000; }
   .ascii-row.ctrl .c { color: #aa0000; }
   .ascii-row.highlight { background: #baf0c8 !important; outline: 2px solid #1e8449; }
-  @media (max-width: 640px) {
-    .ascii-table-wrap { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  }
 
   /* ---------- Sections ---------- */
   section { padding: 56px 0; border-bottom: 1px solid var(--border-soft); }
@@ -420,14 +419,15 @@
       height: auto;
       width: 100%;
       display: flex;
-      gap: 8px;
-      overflow-x: auto;
-      padding: 14px 16px;
+      flex-direction: column;
+      gap: 6px;
+      overflow-x: visible;
+      padding: 10px 12px;
       border-right: none;
       border-bottom: 1px solid var(--border-soft);
     }
     .sidebar-title { display: none; }
-    .nav-btn { width: auto; white-space: nowrap; margin-bottom: 0; }
+    .nav-btn { width: 100%; white-space: normal; margin-bottom: 0; padding: 9px 12px; font-size: 13px; }
   }
 </style>
 </head>
@@ -516,7 +516,9 @@
       <h3>Table de référence ASCII (interactive)</h3>
       <p class="sub-lede">Même table que dans l'image ci-dessus, mais vivante : les lignes correspondant au mot que tu viens de taper s'allument en vert ici, comme n'importe quel autre caractère.</p>
       <div class="panel ascii-table-panel">
-        <div class="ascii-table-wrap" id="asciiTable"></div>
+        <div class="ascii-table-scroll">
+          <div class="ascii-table-wrap" id="asciiTable"></div>
+        </div>
       </div>
     </div>
 
