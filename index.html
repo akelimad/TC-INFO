@@ -157,7 +157,8 @@
   }
   .bit-row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 22px; }
   .bit-col { display: flex; flex-direction: column; align-items: center; gap: 6px; }
-  .bit-place { font-family: "IBM Plex Mono"; font-size: 11px; color: var(--text-faint); }
+  .bit-place { font-family: "IBM Plex Mono"; font-size: 11px; color: var(--text-faint); text-align: center; line-height: 1.3; }
+  .bit-place .val-num { display: block; font-size: 10px; color: var(--text-faint); opacity: 0.8; }
   .bit {
     width: 52px; height: 62px;
     border-radius: 8px;
@@ -178,6 +179,15 @@
     border-color: var(--trace);
   }
   .bit-equals { text-align: center; padding-top: 8px; border-top: 1px dashed var(--border); }
+  .justif { padding-top: 14px; border-top: 1px dashed var(--border); text-align: center; }
+  .justif-title { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+  .justif-line { font-family: "IBM Plex Mono"; font-size: 16px; color: var(--text-dim); line-height: 2; }
+  .justif-left { text-align: left; }
+  .justif-steps { font-family: "IBM Plex Mono"; font-size: 13px; color: var(--text-dim); line-height: 1.9; }
+  .justif-steps .r { color: var(--amber); font-weight: 600; }
+  .justif-line .zero { color: var(--text-faint); }
+  .justif-line .eq { margin: 0 6px 0 10px; }
+  .justif-line .result { font-size: 40px; font-weight: 700; color: var(--amber); vertical-align: -4px; }
   .bit-equals .val { font-family: "IBM Plex Mono"; font-size: 40px; font-weight: 700; color: var(--amber); }
   .bit-equals .lbl { font-size: 13px; color: var(--text-faint); margin-top: 4px; }
   .bit-hint { text-align: center; font-size: 13px; color: var(--text-faint); margin-top: 16px; }
@@ -337,7 +347,7 @@
 
   .converter-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 22px; }
   .converter-row input[type="number"] {
-    width: 140px; font-family: "IBM Plex Mono"; font-size: 18px; padding: 10px 12px;
+    font-family: "IBM Plex Mono"; font-size: 18px; padding: 10px 12px;
     background: var(--bg-panel-raised); border: 1px solid var(--border); border-radius: 8px; color: var(--text);
   }
   .converter-row select {
@@ -473,7 +483,10 @@
       <div class="panel">
         <input type="number" class="num-input" id="decInput" min="0" max="255" value="105">
         <div class="bit-row" id="decBitRow"></div>
-        <div class="steps" id="decSteps"></div>
+        <div class="justif justif-left">
+          <div class="justif-title">Justification</div>
+          <div class="justif-steps" id="decSteps"></div>
+        </div>
       </div>
     </div>
 
@@ -482,9 +495,9 @@
       <p class="sub-lede">Chaque position vaut une puissance de 2. Clique sur les bits pour les activer et regarde le nombre décimal se former en direct.</p>
       <div class="panel">
         <div class="bit-row" id="bitRow"></div>
-        <div class="bit-equals">
-          <div class="val" id="bitValue">0</div>
-          <div class="lbl">valeur décimale de cet octet</div>
+        <div class="justif">
+          <div class="justif-title">Justification</div>
+          <div class="justif-line" id="bitSteps"></div>
         </div>
         <div class="bit-hint">1 octet = 8 bits &nbsp;→&nbsp; de 00000000 (0) à 11111111 (255)</div>
       </div>
@@ -719,6 +732,11 @@
 
 <script>
 (function () {
+  var SUP_DIGITS = { '0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹' };
+  function powerLabel(exp) {
+    return '2' + String(exp).split('').map(function (d) { return SUP_DIGITS[d]; }).join('');
+  }
+
   // Hero switch
   var box = document.getElementById('switchBox');
   var readout = document.getElementById('switchReadout');
@@ -734,14 +752,27 @@
 
   // Bit builder
   var bitRow = document.getElementById('bitRow');
-  var bitValue = document.getElementById('bitValue');
+  var bitSteps = document.getElementById('bitSteps');
   var places = [128, 64, 32, 16, 8, 4, 2, 1];
   var bits = places.map(function () { return 0; });
 
   function renderValue() {
     var total = 0;
-    for (var i = 0; i < 8; i++) total += bits[i] * places[i];
-    bitValue.textContent = total;
+    var first = -1; // first active bit: leading zeros are not shown, inner zeros are
+    for (var i = 0; i < 8; i++) {
+      total += bits[i] * places[i];
+      if (bits[i] && first === -1) first = i;
+    }
+    var terms = [];
+    if (first === -1) {
+      terms.push('<span class="zero">0×' + powerLabel(0) + '</span>');
+    } else {
+      for (var j = first; j < 8; j++) {
+        var t = bits[j] + '×' + powerLabel(7 - j);
+        terms.push(bits[j] ? t : '<span class="zero">' + t + '</span>');
+      }
+    }
+    bitSteps.innerHTML = terms.join(' + ') + '<span class="eq">=</span><span class="result">' + total + '</span>';
   }
 
   places.forEach(function (place, idx) {
@@ -750,7 +781,7 @@
 
     var placeLbl = document.createElement('div');
     placeLbl.className = 'bit-place mono';
-    placeLbl.textContent = place;
+    placeLbl.innerHTML = powerLabel(7 - idx) + '<span class="val-num">(' + place + ')</span>';
     col.appendChild(placeLbl);
 
     var bitEl = document.createElement('div');
@@ -920,13 +951,9 @@
   var decSteps = document.getElementById('decSteps');
   var decCells = [];
 
-  places.forEach(function (place) {
+  places.forEach(function () {
     var col = document.createElement('div');
     col.className = 'bit-col';
-    var placeLbl = document.createElement('div');
-    placeLbl.className = 'bit-place mono';
-    placeLbl.textContent = place;
-    col.appendChild(placeLbl);
     var cell = document.createElement('div');
     cell.className = 'bit readonly-bit';
     cell.textContent = '0';
